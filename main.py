@@ -12,9 +12,9 @@ class IptvRequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         try:
             url = None
-            q = re.match('^/([^/]+)$', self.path)
+            q = re.match('^/(?P<channel>[^/]+)$', self.path)
             if q:
-                channel = q.group(1)
+                channel = q.group('channel')
                 url = self.Api.get_url(channel)
             if url: 
                 self.send_response(200)
