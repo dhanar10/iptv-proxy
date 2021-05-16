@@ -9,6 +9,44 @@ class UseeTvApi:
     def __init__(self):
         self._opener = build_opener(HTTPCookieProcessor(CookieJar()))
 
+    def get_channel_list(self):
+        return [
+            "seatoday",
+            "tvri",
+            "kompastv",
+            "metrotv",
+            "net",
+            "rtv",
+            "antara",
+            "balitv",
+            "beritasatu",
+            "dwtv",
+            "french24",
+            "jaktv",
+            "jtv",
+            "muitv",
+            "trans7",
+            "transtv",
+            "tvedukasi",
+            "tv9",
+            "arirang",
+            "alquran",
+            "tawaftv",
+            "mqtv",
+            "mtatv",
+            "muhammadiyahtv",
+            "rodjatv",
+            "chinesedrama",
+            "daaitv",
+            "nusantaratv",
+            "inews",
+            "mykids",
+            "nhkworld",
+            "mncnews",
+            "mykids",
+            "outdoor",
+        ]  # TODO Scrape html
+
     def get_url(self, channel):
         q = re.search(
             'q[0-9]+="(?P<value>[^"]+)"',
@@ -19,7 +57,7 @@ class UseeTvApi:
             ),
         )
         if q:
-            playlist_url = b64decode(q.group('value')).decode("utf-8")
+            playlist_url = b64decode(q.group("value")).decode("utf-8")
             last_url = next(
                 (
                     line

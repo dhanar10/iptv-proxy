@@ -5,9 +5,14 @@ from api.useetv import UseeTvApi
 
 
 class UseeTvApiTests(unittest.TestCase):
+    def test_get_channel_list(self):
+        api = UseeTvApi()
+        self.assertTrue(len(api.get_channel_list()) > 0)
+
     def test_get_url_channel_valid(self):
         api = UseeTvApi()
-        self.assertTrue(api.get_url("tvri"))
+        channel = api.get_channel_list()[0]
+        self.assertTrue(api.get_url(channel))
 
     def test_get_url_channel_invalid(self):
         api = UseeTvApi()
