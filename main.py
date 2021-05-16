@@ -29,17 +29,16 @@ class IptvRequestHandler(BaseHTTPRequestHandler):
         q = urlparse(self.path).path == "/"
         if not q:
             return False
-        base_url = f"http://{self.headers.get('Host')}"
         self.send_response(200)
         self.send_header("Content-type", "application/vnd.apple.mpegurl")
         self.end_headers()
-        self.wfile.writelines(
-            f"{line}\n".encode("utf-8") for line in ["#EXTM3U"]
-        )
+        self.wfile.writelines(f"{line}\n".encode("utf-8") for line in ["#EXTM3U"])
         self.wfile.writelines(
             [
-                f"#EXT-X-STREAM-INF:BANDWIDTH=0\n{base_url}/{line}|user-agent=Mozilla\n".encode("utf-8")
-                for line in self.Api.get_channel_list()
+                f"#EXT-X-STREAM-INF:BANDWIDTH=0\nhttp://{self.headers.get('Host')}/{channel}?|user-agent=Mozilla\n".encode(
+                    "utf-8"
+                )
+                for channel in self.Api.get_channel_list()
             ]  # XXX Fake EXT-X-STREAM-INF BANDWIDTH, Kodi user-agent=Mozilla
         )
         return True
@@ -49,13 +48,14 @@ class IptvRequestHandler(BaseHTTPRequestHandler):
         if not q:
             return False
         channel = q.group("channel")
-        url = self.Api.get_url(channel)
         self.send_response(200)
         self.send_header("Content-type", "application/vnd.apple.mpegurl")
         self.end_headers()
         self.wfile.writelines(f"{line}\n".encode("utf-8") for line in ["#EXTM3U"])
         self.wfile.write(
-            f"#EXT-X-STREAM-INF:BANDWIDTH=0\n{url}\n".encode("utf-8")
+            f"#EXT-X-STREAM-INF:BANDWIDTH=0\n{self.Api.get_url(channel)}\n".encode(
+                "utf-8"
+            )
         )  # XXX Fake EXT-X-STREAM-INF BANDWIDTH
         return True
 
