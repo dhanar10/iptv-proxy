@@ -26,7 +26,7 @@ class IptvRequestHandler(BaseHTTPRequestHandler):
         self.send_error(404)
 
     def handle_index(self):
-        q = self.path == "/"
+        q = urlparse(self.path).path == "/"
         if not q:
             return False
         base_url = f"http://{self.headers.get('Host')}"
@@ -45,7 +45,7 @@ class IptvRequestHandler(BaseHTTPRequestHandler):
         return True
 
     def handle_channel(self):
-        q = re.match("^/(?P<channel>[^/]+)$", self.path)
+        q = re.match("^/(?P<channel>[^/]+)$", urlparse(self.path).path)
         if not q:
             return False
         channel = q.group("channel")
