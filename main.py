@@ -62,5 +62,5 @@ class IptvRequestHandler(BaseHTTPRequestHandler):
 
 if __name__ == "__main__":
     IptvRequestHandler.initialize()
-    server = HTTPServer(("0.0.0.0", 8080), IptvRequestHandler)
+    server = HTTPServer(("0.0.0.0", 8888), IptvRequestHandler)
     server.serve_forever()
