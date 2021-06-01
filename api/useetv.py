@@ -24,7 +24,7 @@ class UseeTvApi:
             "balitv",
             "beritasatu",
             "dwtv",
-            "french24",
+            "france24",
             "jaktv",
             "jtv",
             "muitv",
@@ -46,7 +46,6 @@ class UseeTvApi:
             "mykids",
             "nhkworld",
             "mncnews",
-            "mykids",
             "outdoor",
         ]  # TODO Scrape html
 
@@ -56,7 +55,7 @@ class UseeTvApi:
             url = c[1]
         else:
             q = re.search(
-                'q[0-9]+="(?P<value>[^"]+)"',
+                'q[0-9]+ ?= ?"(?P<value>[^"]+)"',
                 (
                     self._opener.open(f"https://www.useetv.com/livetv/{channel}")
                     .read()
