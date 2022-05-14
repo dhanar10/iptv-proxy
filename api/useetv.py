@@ -13,41 +13,17 @@ class UseeTvApi:
         self._cache = {}
 
     def get_channel_list(self):
-        return [
-            "seatoday",
-            "tvri",
-            "kompastv",
-            "metrotv",
-            "net",
-            "rtv",
-            "antara",
-            "balitv",
-            "beritasatu",
-            "dwtv",
-            "france24",
-            "jaktv",
-            "jtv",
-            "muitv",
-            "trans7",
-            "transtv",
-            "tvedukasi",
-            "tv9",
-            "arirang",
-            "alquran",
-            "tawaftv",
-            "mqtv",
-            "mtatv",
-            "muhammadiyahtv",
-            "rodjatv",
-            "chinesedrama",
-            "daaitv",
-            "nusantaratv",
-            "inews",
-            "mykids",
-            "nhkworld",
-            "mncnews",
-            "outdoor",
-        ]  # TODO Scrape html
+        q = re.findall(
+            'https://www.useetv.com/pimages/logo_([a-z0-9]+)_small1.png',
+            (
+                self._opener.open(f"https://www.useetv.com/tv/live")
+                .read()
+                .decode("utf-8")
+            ),
+        )
+        if not q:
+            raise HTTPError(404)
+        return q
 
     def get_url(self, channel):
         c = self._cache.get(channel)
