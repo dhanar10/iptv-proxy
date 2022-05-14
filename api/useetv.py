@@ -14,7 +14,7 @@ class UseeTvApi:
 
     def get_channel_list(self):
         q = re.findall(
-            'https://www.useetv.com/pimages/logo_([a-z0-9]+)_small1.png',
+            'https://www.useetv.com/pimages/logo_([a-z0-9]+)_[a-z0-9]+.png',
             (
                 self._opener.open(f"https://www.useetv.com/tv/live")
                 .read()
