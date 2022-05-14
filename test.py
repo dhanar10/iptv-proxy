@@ -9,11 +9,11 @@ class UseeTvApiTests(unittest.TestCase):
         api = UseeTvApi()
         channel_list = api.get_channel_list()
         #print(channel_list)
-        self.assertTrue("tvri" in channel_list)
+        self.assertTrue("useeprime" in channel_list)
 
     def test_get_url_channel_valid(self):
         api = UseeTvApi()
-        url = api.get_url("tvri")
+        url = api.get_url("useeprime")
         #print(url)
         self.assertTrue(url)
 
