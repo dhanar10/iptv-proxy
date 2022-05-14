@@ -10,50 +10,55 @@ from time import time
 class UseeTvApi:
     def __init__(self):
         self._opener = build_opener(HTTPCookieProcessor(CookieJar()))
-        self._cache = {}
+        self._channel_url_cache = {}
 
     def get_channel_list(self):
-        q = re.findall(
-            'https://www.useetv.com/pimages/logo_([a-z0-9]+)_[a-z0-9]+.png',
+        channel_list = re.findall(
+            "https://www.useetv.com/pimages/logo_([a-z0-9]+)_[a-z0-9]+.png",
             (
-                self._opener.open(f"https://www.useetv.com/tv/live")
+                self._opener.open("https://www.useetv.com/tv/live")
                 .read()
                 .decode("utf-8")
             ),
         )
-        if not q:
+        if not channel_list:
             raise HTTPError(404)
-        return q
+        return channel_list
 
     def get_url(self, channel):
-        c = self._cache.get(channel)
+        c = self._channel_url_cache.get(channel)
         if c and int(time()) < c[0]:
-            url = c[1]
+            channel_url = c[1]
         else:
             q = re.search(
                 'q[0-9]+ ?= ?"(?P<value>[^"]+)"',
                 (
-                    self._opener.open(f"https://www.useetv.com/livetv/{channel}")
+                    self._opener.open(
+                        f"https://www.useetv.com/livetv/{channel}")
                     .read()
                     .decode("utf-8")
                 ),
             )
             if not q:
                 raise HTTPError(404)
-            url = next(
-                (
-                    line
-                    for line in reversed(
-                        self._opener.open(b64decode(q.group("value")).decode("utf-8"))
-                        .read()
-                        .decode("utf-8")
-                        .splitlines()
-                    )
-                    if re.match("https://", line)
-                ),
-                None,
-            )  # XXX Assuming the last URL is the highest quality
-            if not url:
+            m3u = self._opener.open(b64decode(q.group("value")).decode(
+                "utf-8")).read().decode("utf-8").splitlines()
+            stream_urls = {}
+            stream_quality = None
+            for line in m3u:
+                if line.startswith("#EXT-X-STREAM-INF"):
+                    stream_quality = int(
+                        re.search('RESOLUTION=[0-9]+x(?P<quality>[0-9]+)', line).group("quality"))
+                    continue
+                if stream_quality and line.startswith("https://"):
+                    stream_urls[stream_quality] = line
+                    stream_quality = None
+            if not stream_urls:
                 raise HTTPError(404)
-            self._cache[channel] = (int(time()) + 300, url)  # XXX Cache 5 minutes
-        return url
+            # FIXME Hardcoded stream quality filter
+            stream_urls = {k: v for k, v in stream_urls.items() if k <= 360}
+            # Take the highest quality stream url available
+            channel_url = stream_urls[max(stream_urls.keys())]
+            self._channel_url_cache[channel] = (
+                int(time()) + 300, channel_url)  # Cache for 5 minutes
+        return channel_url
