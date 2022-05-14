@@ -1,0 +1,11 @@
+[Unit]
+Description=iptv-proxy
+Wants=network-pre.target
+After=network-pre.target NetworkManager.service systemd-resolved.service
+
+[Service]
+WorkingDirectory=/storage/iptv-proxy
+ExecStart=/usr/bin/python3 main.py
+
+[Install]
+WantedBy=multi-user.target
