@@ -10,6 +10,14 @@ http://localhost:8888/rctiplus/mnctv|referer=https://www.rctiplus.com/
 #EXT-X-STREAM-INF:BANDWIDTH=0
 http://localhost:8888/rctiplus/rcti|referer=https://www.rctiplus.com/
 #EXT-X-STREAM-INF:BANDWIDTH=0
+http://localhost:8888/tvri/tvriworld
+#EXT-X-STREAM-INF:BANDWIDTH=0
+http://localhost:8888/tvri/tvrijakarta
+#EXT-X-STREAM-INF:BANDWIDTH=0
+http://localhost:8888/tvri/tvrijawatengah
+#EXT-X-STREAM-INF:BANDWIDTH=0
+http://localhost:8888/tvri/tvriyogyakarta
+#EXT-X-STREAM-INF:BANDWIDTH=0
 http://localhost:8888/useetv/ruangtrampil|user-agent=Mozilla
 #EXT-X-STREAM-INF:BANDWIDTH=0
 http://localhost:8888/useetv/useephoto|user-agent=Mozilla

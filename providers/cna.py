@@ -5,7 +5,6 @@ from urllib.request import build_opener, HTTPCookieProcessor
 class Provider:
     def __init__(self):
         self._opener = build_opener(HTTPCookieProcessor(CookieJar()))
-        self._opener.addheaders = [('Referer', 'https://www.rctiplus.com/')]
         self._channels = {
             "cna": "https://d2e1asnsl7br7b.cloudfront.net/7782e205e72f43aeb4a48ec97f66ebbe/index.m3u8"
         }
