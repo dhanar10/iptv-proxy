@@ -1,5 +1,7 @@
 #EXTM3U
 #EXT-X-STREAM-INF:BANDWIDTH=0
+http://localhost:8888/cna/cna
+#EXT-X-STREAM-INF:BANDWIDTH=0
 http://localhost:8888/rctiplus/gtv|referer=https://www.rctiplus.com/
 #EXT-X-STREAM-INF:BANDWIDTH=0
 http://localhost:8888/rctiplus/inews|referer=https://www.rctiplus.com/
