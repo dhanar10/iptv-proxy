@@ -29,7 +29,7 @@ class IptvProxyRequestHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write("#EXTM3U\n".encode("utf-8"))
         self.wfile.writelines(
-            f"#EXT-X-STREAM-INF:BANDWIDTH=0\nhttp://{self.headers.get('Host')}/{provider_name}/{channel_name}?{provider_instance.get_kodi_url_suffix()}\n".encode(
+            f"#EXT-X-STREAM-INF:BANDWIDTH=0\nhttp://{self.headers.get('Host')}/{provider_name}/{channel_name}{provider_instance.get_kodi_url_suffix()}\n".encode(
                 "utf-8")
             for provider_name, provider_instance in self.Providers.items()
             for channel_name in provider_instance.get_channel_names()

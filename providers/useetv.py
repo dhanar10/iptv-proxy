@@ -13,7 +13,7 @@ class Provider:
         self._stream_url_cache = {}
 
     def get_kodi_url_suffix(self):
-        return "|User-Agent=Mozilla"
+        return "|user-agent=Mozilla"
 
     def get_channel_names(self):
         channel_list = re.findall(
@@ -59,7 +59,7 @@ class Provider:
             if not stream_urls:
                 raise HTTPError(404)
             # FIXME Hardcoded stream quality filter
-            stream_urls = {k: v for k, v in stream_urls.items() if k <= 360}
+            stream_urls = {k: v for k, v in stream_urls.items() if k <= 480}
             # Take the highest quality stream url available
             channel_url = stream_urls[max(stream_urls.keys())]
             self._stream_url_cache[channel_name] = (
