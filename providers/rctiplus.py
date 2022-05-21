@@ -1,6 +1,3 @@
-import re
-
-from base64 import b64decode
 from http.cookiejar import CookieJar
 from urllib.request import build_opener, HTTPCookieProcessor
 
