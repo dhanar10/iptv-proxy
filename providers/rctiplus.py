@@ -20,29 +20,16 @@ class Provider:
     def get_channel_names(self):
         return self._channels.keys()
 
-    def get_stream(self, channel_name):
+    def get_channel_m3u(self, channel_name):
         if not channel_name in self._channels:
             raise Exception("Wrong channel name")
+        base_url = self._channels[channel_name].rsplit("/", 1)[0]
         m3u = self._opener.open(self._channels[channel_name]).read().decode(
             "utf-8").splitlines()
-        stream_urls = {}
-        stream_quality = None
-        for line in m3u:
-            if line.startswith("#EXT-X-STREAM-INF"):
-                stream_quality = int(
-                    re.search('RESOLUTION=[0-9]+x(?P<quality>[0-9]+)', line).group("quality"))
-                continue
-            if stream_quality and not line.startswith("#"):
-                base_url = self._channels[channel_name].rsplit("/", 1)[0]
-                stream_urls[stream_quality] = base_url + "/" + line
-                stream_quality = None
-        if not stream_urls:
-            raise Exception("Failed to get stream URLs")
-        # FIXME Hardcoded stream quality filter
-        stream_urls = {k: v for k, v in stream_urls.items() if k <= 480}
-        # Take the highest quality stream url available
-        channel_url = stream_urls[max(stream_urls.keys())]
-        return channel_url
+        for i in range(len(m3u)):
+            if not m3u[i].startswith("#"):
+                m3u[i] = base_url + "/" + m3u[i]    # Add base URL
+        return "\n".join(m3u)
 
     def get_kodi_headers_suffix(self):
         return "|referer=https://www.rctiplus.com/"

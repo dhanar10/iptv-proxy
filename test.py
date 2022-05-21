@@ -13,32 +13,28 @@ class IptvProxyTests(unittest.TestCase):
 
     def test_useetv_get_channel_names(self):
         channel_names = IptvProxyTests.Providers['useetv'].get_channel_names()
-        # print(channel_names)
         self.assertTrue("useeprime" in channel_names)
 
-    def test_useetv_get_stream_valid(self):
-        url = IptvProxyTests.Providers['useetv'].get_stream("useeprime")
-        # print(url)
-        self.assertTrue(url)
+    def test_useetv_get_channel_m3u_valid(self):
+        m3u = IptvProxyTests.Providers['useetv'].get_channel_m3u("useeprime")
+        self.assertTrue(m3u)
 
-    def test_useetv_get_stream_invalid(self):
+    def test_useetv_get_channel_m3u_invalid(self):
         with self.assertRaises(Exception):
-            IptvProxyTests.Providers['useetv'].get_stream("invalid")
+            IptvProxyTests.Providers['useetv'].get_channel_m3u("invalid")
 
     def test_rctiplus_get_channel_names(self):
         channel_names = IptvProxyTests.Providers['rctiplus'].get_channel_names(
         )
-        # print(channel_names)
         self.assertTrue("gtv" in channel_names)
 
-    def test_rctiplus_get_stream_valid(self):
-        url = IptvProxyTests.Providers['rctiplus'].get_stream("gtv")
-        # print(url)
-        self.assertTrue(url)
+    def test_rctiplus_get_channel_m3u_valid(self):
+        m3u = IptvProxyTests.Providers['rctiplus'].get_channel_m3u("gtv")
+        self.assertTrue(m3u)
 
-    def test_rctiplus_get_stream_invalid(self):
+    def test_rctiplus_get_channel_m3u_invalid(self):
         with self.assertRaises(Exception):
-            IptvProxyTests.Providers['rctiplus'].get_stream("invalid")
+            IptvProxyTests.Providers['rctiplus'].get_channel_m3u("invalid")
 
 
 if __name__ == "__main__":
