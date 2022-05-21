@@ -1,26 +1,30 @@
+import importlib
+import pkgutil
 import unittest
 import urllib
 
-from api.useetv import UseeTvApi
 
+class IptvProxyTests(unittest.TestCase):
+    def setUp(self):
+        IptvProxyTests.Providers = {
+            name : importlib.import_module("providers." + name).Provider()
+            for finder, name, ispkg
+            in pkgutil.iter_modules(path=["providers"])
+        }
 
-class UseeTvApiTests(unittest.TestCase):
-    def test_get_channel_list(self):
-        api = UseeTvApi()
-        channel_list = api.get_channel_list()
+    def test_useetv_get_channel_names(self):
+        channel_list = IptvProxyTests.Providers['useetv'].get_channel_names()
         #print(channel_list)
         self.assertTrue("useeprime" in channel_list)
 
-    def test_get_url_channel_valid(self):
-        api = UseeTvApi()
-        url = api.get_url("useeprime")
+    def  test_useetv_get_stream_valid(self):
+        url = IptvProxyTests.Providers['useetv'].get_stream("useeprime")
         #print(url)
         self.assertTrue(url)
 
-    def test_get_url_channel_invalid(self):
-        api = UseeTvApi()
+    def test_useetv_get_stream_invalid(self):
         with self.assertRaises(urllib.error.HTTPError):
-            api.get_url("invalid")
+            IptvProxyTests.Providers['useetv'].get_stream("invalid")
 
 
 if __name__ == "__main__":

@@ -7,12 +7,12 @@ from urllib.request import build_opener, HTTPCookieProcessor, HTTPError
 from time import time
 
 
-class UseeTvApi:
+class Provider:
     def __init__(self):
         self._opener = build_opener(HTTPCookieProcessor(CookieJar()))
-        self._channel_url_cache = {}
+        self._stream_url_cache = {}
 
-    def get_channel_list(self):
+    def get_channel_names(self):
         channel_list = re.findall(
             "https://www.useetv.com/pimages/logo_([a-z0-9]+)_[a-z0-9]+.png",
             (
@@ -25,8 +25,8 @@ class UseeTvApi:
             raise HTTPError(404)
         return channel_list
 
-    def get_url(self, channel):
-        c = self._channel_url_cache.get(channel)
+    def get_stream(self, channel_name):
+        c = self._stream_url_cache.get(channel_name)
         if c and int(time()) < c[0]:
             channel_url = c[1]
         else:
@@ -34,7 +34,7 @@ class UseeTvApi:
                 'q[0-9]+ ?= ?"(?P<value>[^"]+)"',
                 (
                     self._opener.open(
-                        f"https://www.useetv.com/livetv/{channel}")
+                        f"https://www.useetv.com/livetv/{channel_name}")
                     .read()
                     .decode("utf-8")
                 ),
@@ -59,6 +59,6 @@ class UseeTvApi:
             stream_urls = {k: v for k, v in stream_urls.items() if k <= 360}
             # Take the highest quality stream url available
             channel_url = stream_urls[max(stream_urls.keys())]
-            self._channel_url_cache[channel] = (
+            self._stream_url_cache[channel_name] = (
                 int(time()) + 300, channel_url)  # Cache for 5 minutes
         return channel_url
