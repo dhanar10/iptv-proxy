@@ -10,42 +10,29 @@ from time import time
 class Provider:
     def __init__(self):
         self._opener = build_opener(HTTPCookieProcessor(CookieJar()))
+        self._opener.addheaders = [('Referer', 'https://www.rctiplus.com/')]
+        self._base_url = "https://d322b885qvsbxg.cloudfront.net"
+        self._channels = {
+            "gtv": f"{self._base_url}/GTV2021.m3u8",
+            "inews": f"{self._base_url}/INEWS_2021.m3u8",
+            "mnctv": f"{self._base_url}/MNCTV_2021.m3u8",
+            "rcti": f"{self._base_url}/RCTI_2021.m3u8"
+
+        }
         self._stream_url_cache = {}
 
     def get_kodi_url_suffix(self):
-        return "|User-Agent=Mozilla"
+        return "|User-Agent=Mozilla&Referrer=https://www.rctiplus.com/"
 
     def get_channel_names(self):
-        channel_list = re.findall(
-            "https://www.useetv.com/pimages/logo_([a-z0-9]+)_[a-z0-9]+.png",
-            (
-                self._opener.open("https://www.useetv.com/tv/live")
-                .read()
-                .decode("utf-8")
-            ),
-        )
-        if not channel_list:
-            raise HTTPError(404)
-        return channel_list
+        return self._channels.keys()
 
     def get_stream(self, channel_name):
         c = self._stream_url_cache.get(channel_name)
         if c and int(time()) < c[0]:
             channel_url = c[1]
         else:
-            q = re.search(
-                'q[0-9]+ ?= ?"(?P<value>[^"]+)"',
-                (
-                    self._opener.open(
-                        f"https://www.useetv.com/livetv/{channel_name}")
-                    .read()
-                    .decode("utf-8")
-                ),
-            )
-            if not q:
-                raise HTTPError(404)
-            m3u = self._opener.open(b64decode(q.group("value")).decode(
-                "utf-8")).read().decode("utf-8").splitlines()
+            m3u = self._opener.open(self._channels[channel_name]).read().decode("utf-8").splitlines()
             stream_urls = {}
             stream_quality = None
             for line in m3u:
@@ -53,8 +40,8 @@ class Provider:
                     stream_quality = int(
                         re.search('RESOLUTION=[0-9]+x(?P<quality>[0-9]+)', line).group("quality"))
                     continue
-                if stream_quality and line.startswith("https://"):
-                    stream_urls[stream_quality] = line
+                if stream_quality and not line.startswith("#"):
+                    stream_urls[stream_quality] = self._base_url + "/" + line
                     stream_quality = None
             if not stream_urls:
                 raise HTTPError(404)

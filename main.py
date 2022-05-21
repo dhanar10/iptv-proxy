@@ -29,7 +29,7 @@ class IptvProxyRequestHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write("#EXTM3U\n".encode("utf-8"))
         self.wfile.writelines(
-            f"#EXT-X-STREAM-INF:BANDWIDTH=0\nhttp://{self.headers.get('Host')}/{provider_name}/{channel_name}?|user-agent=Mozilla\n".encode(
+            f"#EXT-X-STREAM-INF:BANDWIDTH=0\nhttp://{self.headers.get('Host')}/{provider_name}/{channel_name}?{provider_instance.get_kodi_url_suffix()}\n".encode(
                 "utf-8")
             for provider_name, provider_instance in self.Providers.items()
             for channel_name in provider_instance.get_channel_names()
@@ -47,20 +47,21 @@ class IptvProxyRequestHandler(BaseHTTPRequestHandler):
         self.send_header("Content-type", "application/vnd.apple.mpegurl")
         self.end_headers()
         self.wfile.write("#EXTM3U\n".encode("utf-8"))
+        # XXX Fake EXT-X-STREAM-INF BANDWIDTH
         self.wfile.write(
             f"#EXT-X-STREAM-INF:BANDWIDTH=0\n{self.Providers[provider_name].get_stream(channel_name)}\n".encode(
                 "utf-8"
             )
-        )  # XXX Fake EXT-X-STREAM-INF BANDWIDTH
+        )
         return True
 
 
 if __name__ == "__main__":
     IptvProxyRequestHandler.Providers = {
-            name: importlib.import_module("providers." + name).Provider()
-            for finder, name, ispkg
-            in pkgutil.iter_modules(path=["providers"])
-        }
+        name: importlib.import_module("providers." + name).Provider()
+        for finder, name, ispkg
+        in pkgutil.iter_modules(path=["providers"])
+    }
     server = HTTPServer(("0.0.0.0", 8888), IptvProxyRequestHandler)
     print("Listening on " + str(server.server_address))
     server.serve_forever()
