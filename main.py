@@ -47,10 +47,10 @@ class IptvProxyRequestHandler(BaseHTTPRequestHandler):
         if stream_cache_value and int(time()) < stream_cache_value[0]:
             stream_url = stream_cache_value[1]
         else:
-            m3u = self._providers[provider_name].get_channel_m3u(channel_name)
+            playlist = self._providers[provider_name].get_channel_playlist(channel_name)
             stream_urls = {}
             stream_quality = None
-            for line in m3u.splitlines():
+            for line in playlist.splitlines():
                 if line.startswith("#EXT-X-STREAM-INF"):
                     stream_quality = int(
                         re.search('RESOLUTION=[0-9]+x(?P<quality>[0-9]+)', line).group("quality"))

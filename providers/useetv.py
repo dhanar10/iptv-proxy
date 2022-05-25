@@ -22,7 +22,7 @@ class Provider:
             raise Exception("Failed to get channel names")
         return channel_names
 
-    def get_channel_m3u(self, channel_name):
+    def get_channel_playlist(self, channel_name):
         query = re.search(
             'q[0-9]+ ?= ?"(?P<value>[^"]+)"',
             (

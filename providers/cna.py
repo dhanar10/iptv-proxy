@@ -12,7 +12,7 @@ class Provider:
     def get_channel_names(self):
         return self._channels.keys()
 
-    def get_channel_m3u(self, channel_name):
+    def get_channel_playlist(self, channel_name):
         if not channel_name in self._channels:
             raise Exception("Wrong channel name")
         base_url = self._channels[channel_name].rsplit("/", 1)[0]
