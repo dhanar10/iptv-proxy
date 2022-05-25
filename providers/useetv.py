@@ -23,20 +23,25 @@ class Provider:
         return channel_names
 
     def get_channel_playlist(self, channel_name):
-        query = re.search(
-            'q[0-9]+ ?= ?"(?P<value>[^"]+)"',
-            (
-                self._opener.open(
-                    f"https://www.useetv.com/livetv/{channel_name}")
-                .read()
-                .decode("utf-8")
-            ),
+        html = self._opener.open(
+            f"https://www.useetv.com/livetv/{channel_name}").read().decode("utf-8")
+        m3u_query = re.search(
+            'q[0-9]+ ?= ?("|\')(?P<value>[^\'"]+)("|\')',
+            html
         )
-        if not query:
+        mpd_query = re.search(
+            'v[0-9]+ ?= ?("|\')(?P<value>[^\'"]+)("|\')',
+            html
+        )
+        if m3u_query:
+            playlist = self._opener.open(b64decode(m3u_query.group("value")).decode(
+                "utf-8")).read().decode("utf-8")
+        elif mpd_query:
+            playlist = (
+                '#EXTM3U\n'  '#EXT-X-STREAM-INF:BANDWIDTH=0,RESOLUTION=0x0,NAME="mpd"\n'  f'{mpd_query.group("value")}')
+        else:
             raise Exception("Wrong channel name")
-        m3u = self._opener.open(b64decode(query.group("value")).decode(
-            "utf-8")).read().decode("utf-8")
-        return m3u
+        return playlist
 
     def get_kodi_headers_suffix(self):
         return "|user-agent=Mozilla"
