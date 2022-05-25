@@ -47,7 +47,8 @@ class IptvProxyRequestHandler(BaseHTTPRequestHandler):
         if stream_cache_value and int(time()) < stream_cache_value[0]:
             stream_url = stream_cache_value[1]
         else:
-            playlist = self._providers[provider_name].get_channel_playlist(channel_name)
+            playlist = self._providers[provider_name].get_channel_playlist(
+                channel_name)
             stream_urls = {}
             stream_quality = None
             for line in playlist.splitlines():
@@ -55,7 +56,7 @@ class IptvProxyRequestHandler(BaseHTTPRequestHandler):
                     stream_quality = int(
                         re.search('RESOLUTION=[0-9]+x(?P<quality>[0-9]+)', line).group("quality"))
                     continue
-                if stream_quality and not line.startswith("#"):
+                if stream_quality is not None and not line.startswith("#"):
                     stream_urls[stream_quality] = line
                     stream_quality = None
             if not stream_urls:
@@ -70,12 +71,19 @@ class IptvProxyRequestHandler(BaseHTTPRequestHandler):
         self.send_header("Content-type", "application/vnd.apple.mpegurl")
         self.end_headers()
         self.wfile.write("#EXTM3U\n".encode("utf-8"))
-        # XXX Fake EXT-X-STREAM-INF BANDWIDTH
-        self.wfile.write(
-            f"#EXT-X-STREAM-INF:BANDWIDTH=0\n{stream_url}\n".encode(
-                "utf-8"
+        # Inject KODIPROP if mpd
+        if "manifest.mpd" in stream_url:
+            self.wfile.write(
+                ("#KODIPROP:inputstream=inputstream.adaptive\n"
+                 "#KODIPROP:inputstream.adaptive.manifest_type=mpd\n"
+                 "#KODIPROP:inputstream.adaptive.stream_headers=User-Agent=Mozilla\n")
+                .encode("utf-8")
             )
-        )
+            self.wfile.write(f"{stream_url}\n".encode("utf-8"))
+        else:
+            # XXX Fake EXT-X-STREAM-INF BANDWIDTH
+            self.wfile.write("#EXT-X-STREAM-INF:BANDWIDTH=0\n".encode("utf-8"))
+            self.wfile.write(f"{stream_url}\n".encode("utf-8"))
 
     def _handle_get_index(self):
         self.send_response(200)
