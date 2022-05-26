@@ -1,4 +1,5 @@
 import re
+import xml.etree.ElementTree as ET
 
 from base64 import b64decode
 from http.cookiejar import CookieJar
@@ -37,8 +38,13 @@ class Provider:
             playlist = self._opener.open(b64decode(m3u_query.group("value")).decode(
                 "utf-8")).read().decode("utf-8")
         elif mpd_query:
-            playlist = (
-                '#EXTM3U\n'  '#EXT-X-STREAM-INF:BANDWIDTH=0,RESOLUTION=0x0,NAME="mpd"\n'  f'{mpd_query.group("value")}')
+            mpd_xml = self._opener.open(mpd_query.group("value")).read()
+            ET.register_namespace("","urn:mpeg:dash:schema:mpd:2011")
+            mpd_xml_root = ET.fromstring(mpd_xml)
+            mpd_xml_baseurl = ET.Element("BaseUrl")
+            mpd_xml_baseurl.text = mpd_query.group("value").split("?")[0].rsplit("/", 1)[0] + "/"
+            mpd_xml_root.insert(0, mpd_xml_baseurl)
+            playlist = ET.tostring(mpd_xml_root, encoding='utf-8').decode('utf-8')
         else:
             raise Exception("Wrong channel name")
         return playlist

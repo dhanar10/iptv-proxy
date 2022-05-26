@@ -3,7 +3,6 @@ import pkgutil
 import re
 
 from http.server import HTTPServer, BaseHTTPRequestHandler
-from urllib.error import HTTPError
 from urllib.parse import urlparse
 from time import time
 
@@ -14,12 +13,25 @@ class IptvProxyRequestHandler(BaseHTTPRequestHandler):
         for finder, name, ispkg
         in pkgutil.iter_modules(path=["providers"])
     }
-    _stream_cache = {}
+    _playlist_cache = {}
 
     def do_HEAD(self):
-        self.send_response(200)
-        self.send_header("Content-type", "application/vnd.apple.mpegurl")
-        self.end_headers()
+        parsed_url = urlparse(self.path)
+
+        match_get_stream = re.match(
+            "^/(?P<provider_name>[^/]+)/(?P<channel_name>[^/]+)$", parsed_url.path)
+
+        if match_get_stream:
+            provider_name = match_get_stream.group("provider_name")
+            channel_name = match_get_stream.group("channel_name")
+            self._handle_get_stream(provider_name, channel_name, True)
+            return
+
+        match_get_index = parsed_url.path == "/"
+
+        if match_get_index:
+            self._handle_get_index()
+            return
 
     def do_GET(self):
         parsed_url = urlparse(self.path)
@@ -39,16 +51,29 @@ class IptvProxyRequestHandler(BaseHTTPRequestHandler):
             self._handle_get_index()
             return
 
-        raise HTTPError(404)
+        self.send_response(404)
 
-    def _handle_get_stream(self, provider_name, channel_name):
-        stream_cache_key = provider_name + "/" + channel_name
-        stream_cache_value = self._stream_cache.get(stream_cache_key)
+    # TODO Break up method
+    def _handle_get_stream(self, provider_name, channel_name, is_head=False):
+        playlist_cache_key = provider_name + "/" + channel_name
+        stream_cache_value = self._playlist_cache.get(playlist_cache_key)
         if stream_cache_value and int(time()) < stream_cache_value[0]:
-            stream_url = stream_cache_value[1]
+            playlist = stream_cache_value[1]
         else:
             playlist = self._providers[provider_name].get_channel_playlist(
                 channel_name)
+            self._playlist_cache[playlist_cache_key] = (
+                int(time()) + 300, playlist)  # Cache for 5 minutes
+        if playlist.startswith(str("<MPD")):
+            body = playlist.encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/dash+xml")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            if is_head:
+                return
+            self.wfile.write(body)
+        elif playlist.startswith(str("#EXTM3U")):
             stream_urls = {}
             stream_quality = None
             for line in playlist.splitlines():
@@ -65,29 +90,24 @@ class IptvProxyRequestHandler(BaseHTTPRequestHandler):
             stream_urls = {k: v for k, v in stream_urls.items() if k <= 480}
             # Take the highest quality stream url available
             stream_url = stream_urls[max(stream_urls.keys())]
-            self._stream_cache[stream_cache_key] = (
-                int(time()) + 300, stream_url)  # Cache for 5 minutes
-        self.send_response(200)
-        self.send_header("Content-type", "application/vnd.apple.mpegurl")
-        self.end_headers()
-        self.wfile.write("#EXTM3U\n".encode("utf-8"))
-        # Inject KODIPROP if mpd
-        if "manifest.mpd" in stream_url:
-            self.wfile.write(
-                ("#KODIPROP:inputstream=inputstream.adaptive\n"
-                 "#KODIPROP:inputstream.adaptive.manifest_type=mpd\n"
-                 "#KODIPROP:inputstream.adaptive.stream_headers=User-Agent=Mozilla\n")
-                .encode("utf-8")
-            )
-            self.wfile.write(f"{stream_url}\n".encode("utf-8"))
-        else:
+            body = (
+                "#EXTM3U\n"
+                "#EXT-X-STREAM-INF:BANDWIDTH=0\n"
+                f"{stream_url}\n"
+            ).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/vnd.apple.mpegurl")
+            self.end_headers()
+            if is_head:
+                return
             # XXX Fake EXT-X-STREAM-INF BANDWIDTH
-            self.wfile.write("#EXT-X-STREAM-INF:BANDWIDTH=0\n".encode("utf-8"))
-            self.wfile.write(f"{stream_url}\n".encode("utf-8"))
+            self.wfile.write(body)
+        else:
+            self.send_response(500)
 
     def _handle_get_index(self):
         self.send_response(200)
-        self.send_header("Content-type", "application/vnd.apple.mpegurl")
+        self.send_header("Content-Type", "application/vnd.apple.mpegurl")
         self.end_headers()
         self.wfile.write("#EXTM3U\n".encode("utf-8"))
         self.wfile.writelines(

@@ -32,6 +32,10 @@ class IptvProxyTests(unittest.TestCase):
             playlist = IptvProxyTests.Providers[provider_name].get_channel_playlist(
                 channel_name)
             self.assertTrue(playlist)
+            if playlist.startswith(str("<MPD")):
+                 self.assertTrue("<BaseUrl>" in playlist)
+            else:
+                self.assertTrue("#EXTM3U" in playlist)
             print(playlist)
 
     def test_get_channel_playlist_invalid(self):
