@@ -9,10 +9,21 @@ from urllib.request import build_opener, HTTPCookieProcessor
 class Provider:
     def __init__(self):
         self._opener = build_opener(HTTPCookieProcessor(CookieJar()))
+        self._channel_name_override = {
+            "ruangtrampil": "useeinfo"
+        }
+        self._mpd_channels = [
+            "useeinfo",
+            "useephoto",
+            "tvri",
+            "beritasatu",
+            "prambors",
+            "indikids",
+        ]
 
     def get_channel_names(self):
         channel_names = re.findall(
-            "https://www.useetv.com/pimages/logo_([a-z0-9]+)_[a-z0-9]+.png",
+            "https://images.useetv.com/logo_([a-z0-9]+)_[a-z0-9]+.png",
             (
                 self._opener.open("https://www.useetv.com/tv/live")
                 .read()
@@ -21,6 +32,8 @@ class Provider:
         )
         if not channel_names:
             raise Exception("Failed to get channel names")
+        for k,v in self._channel_name_override.items():
+            channel_names[channel_names.index(k)] = v
         return channel_names
 
     def get_channel_playlist(self, channel_name):
@@ -39,15 +52,26 @@ class Provider:
                 "utf-8")).read().decode("utf-8")
         elif mpd_query:
             mpd_xml = self._opener.open(mpd_query.group("value")).read()
-            ET.register_namespace("","urn:mpeg:dash:schema:mpd:2011")
+            ET.register_namespace("", "urn:mpeg:dash:schema:mpd:2011")
             mpd_xml_root = ET.fromstring(mpd_xml)
             mpd_xml_baseurl = ET.Element("BaseUrl")
-            mpd_xml_baseurl.text = mpd_query.group("value").split("?")[0].rsplit("/", 1)[0] + "/"
+            mpd_xml_baseurl.text = mpd_query.group("value").split("?")[
+                0].rsplit("/", 1)[0] + "/"
             mpd_xml_root.insert(0, mpd_xml_baseurl)
-            playlist = ET.tostring(mpd_xml_root, encoding='utf-8').decode('utf-8')
+            playlist = ET.tostring(
+                mpd_xml_root, encoding='utf-8').decode('utf-8')
         else:
             raise Exception("Wrong channel name")
         return playlist
 
-    def get_kodi_headers_suffix(self):
+    def get_kodi_props(self, channel_name):
+        if channel_name in self._mpd_channels:
+            return (
+                "#KODIPROP:inputstream=inputstream.adaptive\n"
+                "#KODIPROP:inputstream.adaptive.manifest_type=mpd\n"
+            )
+        else:
+            return ""
+
+    def get_kodi_url_suffix(self):
         return "|user-agent=Mozilla"

@@ -90,6 +90,7 @@ class IptvProxyRequestHandler(BaseHTTPRequestHandler):
             stream_urls = {k: v for k, v in stream_urls.items() if k <= 480}
             # Take the highest quality stream url available
             stream_url = stream_urls[max(stream_urls.keys())]
+            # XXX Fake EXT-X-STREAM-INF BANDWIDTH
             body = (
                 "#EXTM3U\n"
                 "#EXT-X-STREAM-INF:BANDWIDTH=0\n"
@@ -100,7 +101,6 @@ class IptvProxyRequestHandler(BaseHTTPRequestHandler):
             self.end_headers()
             if is_head:
                 return
-            # XXX Fake EXT-X-STREAM-INF BANDWIDTH
             self.wfile.write(body)
         else:
             self.send_response(500)
@@ -110,12 +110,13 @@ class IptvProxyRequestHandler(BaseHTTPRequestHandler):
         self.send_header("Content-Type", "application/vnd.apple.mpegurl")
         self.end_headers()
         self.wfile.write("#EXTM3U\n".encode("utf-8"))
-        self.wfile.writelines(
-            f"#EXT-X-STREAM-INF:BANDWIDTH=0\nhttp://{self.headers.get('Host')}/{provider_name}/{channel_name}{provider_instance.get_kodi_headers_suffix()}\n".encode(
-                "utf-8")
-            for provider_name, provider_instance in self._providers.items()
-            for channel_name in provider_instance.get_channel_names()
-        )
+        for provider_name, provider_instance in self._providers.items():
+            for channel_name in provider_instance.get_channel_names():
+                self.wfile.write((
+                    "#EXT-X-STREAM-INF:BANDWIDTH=0\n"
+                    f"{provider_instance.get_kodi_props(channel_name)}"
+                    f"http://{self.headers.get('Host')}/{provider_name}/{channel_name}{provider_instance.get_kodi_url_suffix()}\n"
+                ).encode("utf-8"))
 
 
 if __name__ == "__main__":

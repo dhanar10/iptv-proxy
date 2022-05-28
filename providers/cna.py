@@ -23,5 +23,8 @@ class Provider:
                 m3u[i] = base_url + "/" + m3u[i]    # Add base URL
         return "\n".join(m3u)
 
-    def get_kodi_headers_suffix(self):
+    def get_kodi_props(self, channel_name):
+        return ""
+
+    def get_kodi_url_suffix(self):
         return ""
