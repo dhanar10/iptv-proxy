@@ -3,8 +3,10 @@ import pkgutil
 import unittest
 
 test_provider_channel_name_list = [
+    ('biznet', 'biznetkids'),
     ('cna', 'cna'),
     ('rctiplus', 'gtv'),
+    ('spacetoon', 'spacetoon'),
     ('useetv', 'useeprime'),    # m3u
     ('useetv', 'tvri')          # mpd
 ]
