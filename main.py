@@ -87,7 +87,8 @@ class IptvProxyRequestHandler(BaseHTTPRequestHandler):
             if not stream_urls:
                 raise Exception("Failed to get stream URLs")
             # FIXME Hardcoded stream quality filter
-            stream_urls = {k: v for k, v in stream_urls.items() if k <= 480}
+            if len(stream_urls) > 1:
+                stream_urls = {k: v for k, v in stream_urls.items() if k <= 480}
             # Take the highest quality stream url available
             stream_url = stream_urls[max(stream_urls.keys())]
             # XXX Fake EXT-X-STREAM-INF BANDWIDTH
