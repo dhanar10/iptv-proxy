@@ -1,6 +1,14 @@
 #EXTM3U
 #EXT-X-STREAM-INF:BANDWIDTH=0
+http://localhost:8888/biznet/biznetadventure
+#EXT-X-STREAM-INF:BANDWIDTH=0
+http://localhost:8888/biznet/biznetlifestyle
+#EXT-X-STREAM-INF:BANDWIDTH=0
+http://localhost:8888/biznet/biznetkids
+#EXT-X-STREAM-INF:BANDWIDTH=0
 http://localhost:8888/cna/cna
+#EXT-X-STREAM-INF:BANDWIDTH=0
+http://localhost:8888/cnbc/cnbcindonesia
 #EXT-X-STREAM-INF:BANDWIDTH=0
 http://localhost:8888/rctiplus/gtv|referer=https://www.rctiplus.com/
 #EXT-X-STREAM-INF:BANDWIDTH=0
