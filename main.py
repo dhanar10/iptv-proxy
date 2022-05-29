@@ -64,7 +64,7 @@ class IptvProxyRequestHandler(BaseHTTPRequestHandler):
                 channel_name)
             self._playlist_cache[playlist_cache_key] = (
                 int(time()) + 300, playlist)  # Cache for 5 minutes
-        if playlist.startswith(str("<MPD")):
+        if playlist.startswith(str('<?xml version="1.0"?>\n<MPD')):
             body = playlist.encode("utf-8")
             self.send_response(200)
             self.send_header("Content-Type", "application/dash+xml")
