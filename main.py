@@ -13,7 +13,7 @@ class IptvProxyRequestHandler(BaseHTTPRequestHandler):
         for finder, name, ispkg
         in pkgutil.iter_modules(path=["providers"])
     }
-    _playlist_cache = {}
+    #_playlist_cache = {}
 
     def do_HEAD(self):
         parsed_url = urlparse(self.path)
@@ -55,15 +55,17 @@ class IptvProxyRequestHandler(BaseHTTPRequestHandler):
 
     # TODO Break up method
     def _handle_get_stream(self, provider_name, channel_name, is_head=False):
-        playlist_cache_key = provider_name + "/" + channel_name
-        stream_cache_value = self._playlist_cache.get(playlist_cache_key)
-        if stream_cache_value and int(time()) < stream_cache_value[0]:
-            playlist = stream_cache_value[1]
-        else:
-            playlist = self._providers[provider_name].get_channel_playlist(
+        # playlist_cache_key = provider_name + "/" + channel_name
+        # stream_cache_value = self._playlist_cache.get(playlist_cache_key)
+        # if stream_cache_value and int(time()) < stream_cache_value[0]:
+        #     playlist = stream_cache_value[1]
+        # else:
+        #     playlist = self._providers[provider_name].get_channel_playlist(
+        #         channel_name)
+        #     self._playlist_cache[playlist_cache_key] = (
+        #         int(time()) + 300, playlist)  # Cache for 5 minutes
+        playlist = self._providers[provider_name].get_channel_playlist(
                 channel_name)
-            self._playlist_cache[playlist_cache_key] = (
-                int(time()) + 300, playlist)  # Cache for 5 minutes
         if playlist.startswith(str('<?xml version="1.0"?>\n<MPD')):
             body = playlist.encode("utf-8")
             self.send_response(200)
