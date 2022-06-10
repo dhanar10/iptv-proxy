@@ -6,6 +6,7 @@ test_provider_channel_name_list = [
     ('biznet', 'biznetkids'),
     ('cna', 'cna'),
     ('cnbc', 'cnbcindonesia'),
+    ('maxstream', 'mcc'),
     ('rctiplus', 'gtv'),
     ('spacetoon', 'spacetoon'),
     ('tvri', 'tvri'),
