@@ -6,6 +6,7 @@ class Provider:
     def __init__(self):
         self._opener = build_opener(HTTPCookieProcessor(CookieJar()))
         self._channels = {
+            "tvri": "http://118.97.50.107/Content/HLS/Live/Channel(TVRINASIONAL)/index.m3u8",
             "tvriworld": "http://118.97.50.107/Content/HLS/Live/Channel(TVRI3)/index.m3u8",
             "tvrijakarta": "http://118.97.50.107/Content/HLS/Live/Channel(TVRIDKI)/index.m3u8",
             "tvrijawatengah": "http://118.97.50.107/Content/HLS/Live/Channel(TVRIJATENGSEMARANG)/index.m3u8",
