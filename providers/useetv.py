@@ -35,7 +35,7 @@ class Provider:
             raise Exception("Failed to get channel names")
         for k, v in self._channel_name_override.items():
             channel_names[channel_names.index(k)] = v
-        return channel_names
+        return list(set(channel_names) - set(self._mpd_channels))
 
     def get_channel_playlist(self, channel_name):
         html = self._opener.open(
