@@ -8,6 +8,7 @@ test_provider_channel_name_list = [
     ('cnbc', 'cnbcindonesia'),
     ('rctiplus', 'gtv'),
     ('spacetoon', 'spacetoon'),
+    ('tvri', 'tvri'),
     ('useetv', 'useeprime'),    # m3u
     #('useetv', 'tvri')         # mpd
 ]
