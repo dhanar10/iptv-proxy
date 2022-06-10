@@ -3,6 +3,7 @@ import re
 from base64 import b64decode
 from http.cookiejar import CookieJar
 from urllib.request import build_opener, HTTPCookieProcessor
+from time import time
 
 
 class Provider:
@@ -19,6 +20,7 @@ class Provider:
             "prambors",
             "indikids",
         ]
+        self._mpd_url_cache = {}
 
     def get_channel_names(self):
         channel_names = re.findall(
@@ -50,10 +52,16 @@ class Provider:
             playlist = self._opener.open(b64decode(m3u_query.group("value")).decode(
                 "utf-8")).read().decode("utf-8")
         elif mpd_query:
-            baseUrl = mpd_query.group("value").split(
+            mpd_url_cache = self._mpd_url_cache.get(channel_name)
+            if mpd_url_cache and int(time()) < mpd_url_cache[1]:
+                mpd_url = mpd_url_cache[0]
+            else:
+                mpd_url = mpd_query.group("value")
+            self._mpd_url_cache[channel_name] = (
+                mpd_url, int(time()) + 300)  # Cache for 5 minutes
+            baseUrl = mpd_url.split(
                 "?")[0].rsplit("/", 1)[0] + "/"
-            playlist = self._opener.open(
-                mpd_query.group("value")).read().decode("utf-8")
+            playlist = self._opener.open(mpd_url).read().decode("utf-8")
             # Kodi inpustream MPD does not support BaseURL?
             playlist = playlist.replace(' media="', f' media="{baseUrl}').replace(
                 ' initialization="', f' initialization="{baseUrl}')
