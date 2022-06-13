@@ -13,7 +13,7 @@ class IptvProxyRequestHandler(BaseHTTPRequestHandler):
         for finder, name, ispkg
         in pkgutil.iter_modules(path=["providers"])
     }
-    #_playlist_cache = {}
+    _playlist_cache = {}
 
     def do_HEAD(self):
         parsed_url = urlparse(self.path)
@@ -55,27 +55,16 @@ class IptvProxyRequestHandler(BaseHTTPRequestHandler):
 
     # TODO Break up method
     def _handle_get_stream(self, provider_name, channel_name, is_head=False):
-        # playlist_cache_key = provider_name + "/" + channel_name
-        # stream_cache_value = self._playlist_cache.get(playlist_cache_key)
-        # if stream_cache_value and int(time()) < stream_cache_value[0]:
-        #     playlist = stream_cache_value[1]
-        # else:
-        #     playlist = self._providers[provider_name].get_channel_playlist(
-        #         channel_name)
-        #     self._playlist_cache[playlist_cache_key] = (
-        #         int(time()) + 300, playlist)  # Cache for 5 minutes
-        playlist = self._providers[provider_name].get_channel_playlist(
+        playlist_cache_key = provider_name + "/" + channel_name
+        stream_cache_value = self._playlist_cache.get(playlist_cache_key)
+        if stream_cache_value and int(time()) < stream_cache_value[0]:
+            playlist = stream_cache_value[1]
+        else:
+            playlist = self._providers[provider_name].get_channel_playlist(
                 channel_name)
-        if playlist.startswith(str('<?xml version="1.0"?>\n<MPD')):
-            body = playlist.encode("utf-8")
-            self.send_response(200)
-            self.send_header("Content-Type", "application/dash+xml")
-            self.send_header("Content-Length", str(len(body)))
-            self.end_headers()
-            if is_head:
-                return
-            self.wfile.write(body)
-        elif playlist.startswith(str("#EXTM3U")):
+            self._playlist_cache[playlist_cache_key] = (
+                int(time()) + 300, playlist)  # Cache for 5 minutes
+        if playlist.startswith(str("#EXTM3U")):
             self.send_response(200)
             self.send_header("Content-Type", "application/vnd.apple.mpegurl")
             self.end_headers()
@@ -86,13 +75,22 @@ class IptvProxyRequestHandler(BaseHTTPRequestHandler):
             for line in playlist.splitlines():
                 if line.startswith("#EXT-X-STREAM-INF"):
                     video_resolution = int(
-                        re.search('RESOLUTION=[0-9]+x(?P<quality>[0-9]+)', line).group("quality"))
-                    if video_resolution <= 540:
+                        re.search('RESOLUTION=[0-9]+x(?P<height>[0-9]+)', line).group("height"))
+                    if video_resolution <= 480:
                         self.wfile.write(f"{line}\n".encode("utf-8"))
                 else:
-                    if video_resolution <= 540:
+                    if video_resolution <= 480:
                         self.wfile.write(f"{line}\n".encode("utf-8"))
                     video_resolution = 0
+        elif playlist.startswith(str('<?xml version="1.0"?>\n<MPD')):
+            body = playlist.encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/dash+xml")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            if is_head:
+                return
+            self.wfile.write(body)
         else:
             self.send_response(500)
 
