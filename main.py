@@ -76,35 +76,23 @@ class IptvProxyRequestHandler(BaseHTTPRequestHandler):
                 return
             self.wfile.write(body)
         elif playlist.startswith(str("#EXTM3U")):
-            stream_urls = {}
-            stream_quality = None
-            for line in playlist.splitlines():
-                if line.startswith("#EXT-X-STREAM-INF"):
-                    stream_quality = int(
-                        re.search('RESOLUTION=[0-9]+x(?P<quality>[0-9]+)', line).group("quality"))
-                    continue
-                if stream_quality is not None and not line.startswith("#"):
-                    stream_urls[stream_quality] = line
-                    stream_quality = None
-            if not stream_urls:
-                raise Exception("Failed to get stream URLs")
-            # FIXME Hardcoded stream quality filter
-            if len(stream_urls) > 1:
-                stream_urls = {k: v for k, v in stream_urls.items() if k <= 480}
-            # Take the highest quality stream url available
-            stream_url = stream_urls[max(stream_urls.keys())]
-            # XXX Fake EXT-X-STREAM-INF BANDWIDTH
-            body = (
-                "#EXTM3U\n"
-                "#EXT-X-STREAM-INF:BANDWIDTH=0\n"
-                f"{stream_url}\n"
-            ).encode("utf-8")
             self.send_response(200)
             self.send_header("Content-Type", "application/vnd.apple.mpegurl")
             self.end_headers()
             if is_head:
                 return
-            self.wfile.write(body)
+            video_resolution = 0
+            # FIXME Hardcoded video resolution limit
+            for line in playlist.splitlines():
+                if line.startswith("#EXT-X-STREAM-INF"):
+                    video_resolution = int(
+                        re.search('RESOLUTION=[0-9]+x(?P<quality>[0-9]+)', line).group("quality"))
+                    if video_resolution <= 540:
+                        self.wfile.write(f"{line}\n".encode("utf-8"))
+                else:
+                    if video_resolution <= 540:
+                        self.wfile.write(f"{line}\n".encode("utf-8"))
+                    video_resolution = 0
         else:
             self.send_response(500)
 

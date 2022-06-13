@@ -22,11 +22,13 @@ class Provider:
 
     def get_channel_playlist(self, channel_name):
         if not channel_name in self._channels:
-            raise Exception("Wrong channel name")
+            raise Exception(f"Wrong channel name: {channel_name}")
         base_url = self._channels[channel_name].rsplit("/", 1)[0]
         m3u = self._opener.open(self._channels[channel_name]).read().decode(
             "utf-8").splitlines()
         for i in range(len(m3u)):
+            if  m3u[i].startswith("#EXT-X-MEDIA:TYPE=AUDIO"):
+                m3u[i] = m3u[i].replace(',URI="',f',URI="{base_url}/')
             if not m3u[i].startswith("#"):
                 m3u[i] = base_url + "/" + m3u[i]    # Add base URL
         return "\n".join(m3u)
