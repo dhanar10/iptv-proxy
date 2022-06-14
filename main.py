@@ -56,14 +56,16 @@ class IptvProxyRequestHandler(BaseHTTPRequestHandler):
     # TODO Break up method
     def _handle_get_stream(self, provider_name, channel_name, is_head=False):
         playlist_cache_key = provider_name + "/" + channel_name
-        stream_cache_value = self._playlist_cache.get(playlist_cache_key)
-        if stream_cache_value and int(time()) < stream_cache_value[0]:
-            playlist = stream_cache_value[1]
-        else:
+        playlist_cache_value = self._playlist_cache.get(playlist_cache_key)
+        playlist = None
+        if playlist_cache_value and int(time()) < playlist_cache_value[0]:
+            playlist = playlist_cache_value[1]
+        if not playlist:
             playlist = self._providers[provider_name].get_channel_playlist(
                 channel_name)
-            self._playlist_cache[playlist_cache_key] = (
-                int(time()) + 300, playlist)  # Cache for 5 minutes
+            if playlist.startswith(str("#EXTM3U")):
+                self._playlist_cache[playlist_cache_key] = (
+                    int(time()) + 300, playlist)  # Cache m3u playlist for 5 minutes
         if playlist.startswith(str("#EXTM3U")):
             self.send_response(200)
             self.send_header("Content-Type", "application/vnd.apple.mpegurl")
