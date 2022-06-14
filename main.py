@@ -84,7 +84,7 @@ class IptvProxyRequestHandler(BaseHTTPRequestHandler):
                     if video_resolution <= 480:
                         self.wfile.write(f"{line}\n".encode("utf-8"))
                     video_resolution = 0
-        elif playlist.startswith(str('<?xml version="1.0"?>\n<MPD')):
+        elif playlist.startswith(str('<MPD')):
             body = playlist.encode("utf-8")
             self.send_response(200)
             self.send_header("Content-Type", "application/dash+xml")

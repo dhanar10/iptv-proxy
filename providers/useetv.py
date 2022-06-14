@@ -1,4 +1,5 @@
 import re
+import xml.etree.ElementTree as ET
 
 from base64 import b64decode
 from http.cookiejar import CookieJar
@@ -35,7 +36,8 @@ class Provider:
             raise Exception("Failed to get channel names")
         for k, v in self._channel_name_override.items():
             channel_names[channel_names.index(k)] = v
-        return list(set(channel_names) - set(self._mpd_channels))
+        #return list(set(channel_names) - set(self._mpd_channels))
+        return channel_names
 
     def get_channel_playlist(self, channel_name):
         html = self._opener.open(
@@ -52,19 +54,15 @@ class Provider:
             playlist = self._opener.open(b64decode(m3u_query.group("value")).decode(
                 "utf-8")).read().decode("utf-8")
         elif mpd_query:
-            mpd_url_cache = self._mpd_url_cache.get(channel_name)
-            if mpd_url_cache and int(time()) < mpd_url_cache[1]:
-                mpd_url = mpd_url_cache[0]
-            else:
-                mpd_url = mpd_query.group("value")
-            self._mpd_url_cache[channel_name] = (
-                mpd_url, int(time()) + 300)  # Cache for 5 minutes
-            baseUrl = mpd_url.split(
-                "?")[0].rsplit("/", 1)[0] + "/"
-            playlist = self._opener.open(mpd_url).read().decode("utf-8")
-            # Kodi inpustream MPD does not support BaseURL?
-            playlist = playlist.replace(' media="', f' media="{baseUrl}').replace(
-                ' initialization="', f' initialization="{baseUrl}')
+            mpd_xml = self._opener.open(mpd_query.group("value")).read()
+            ET.register_namespace("", "urn:mpeg:dash:schema:mpd:2011")
+            mpd_xml_root = ET.fromstring(mpd_xml)
+            mpd_xml_baseurl = ET.Element("BaseURL")
+            mpd_xml_baseurl.text = mpd_query.group("value").split("?")[
+                0].rsplit("/", 1)[0] + "/"
+            mpd_xml_root.insert(0, mpd_xml_baseurl)
+            playlist = ET.tostring(
+                mpd_xml_root, encoding='utf-8').decode('utf-8')
         else:
             raise Exception("Wrong channel name")
         return playlist
