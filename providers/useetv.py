@@ -14,6 +14,14 @@ class Provider:
         self._channel_name_override = {
             "ruangtrampil": "useeinfo"
         }
+        self._mpd_channels = [
+            "useeinfo",
+            "useephoto",
+            "tvri",
+            "beritasatu",
+            "pramborstv",
+            "indikids",
+        ]
         self._mpd_url_cache = {}
 
     def get_channel_names(self):
