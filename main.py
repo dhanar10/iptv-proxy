@@ -18,13 +18,13 @@ class IptvProxyRequestHandler(BaseHTTPRequestHandler):
     def do_HEAD(self):
         parsed_url = urlparse(self.path)
 
-        match_get_stream = re.match(
+        match_get_channel_playlist = re.match(
             "^/(?P<provider_name>[^/]+)/(?P<channel_name>[^/]+)$", parsed_url.path)
 
-        if match_get_stream:
-            provider_name = match_get_stream.group("provider_name")
-            channel_name = match_get_stream.group("channel_name")
-            self._handle_get_stream(provider_name, channel_name, True)
+        if match_get_channel_playlist:
+            provider_name = match_get_channel_playlist.group("provider_name")
+            channel_name = match_get_channel_playlist.group("channel_name")
+            self._handle_get_channel_playlist(provider_name, channel_name, True)
             return
 
         match_get_index = parsed_url.path == "/"
@@ -36,13 +36,24 @@ class IptvProxyRequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         parsed_url = urlparse(self.path)
 
-        match_get_stream = re.match(
+        match_get_channel_playlist = re.match(
             "^/(?P<provider_name>[^/]+)/(?P<channel_name>[^/]+)$", parsed_url.path)
 
-        if match_get_stream:
-            provider_name = match_get_stream.group("provider_name")
-            channel_name = match_get_stream.group("channel_name")
-            self._handle_get_stream(provider_name, channel_name)
+        if match_get_channel_playlist:
+            provider_name = match_get_channel_playlist.group("provider_name")
+            channel_name = match_get_channel_playlist.group("channel_name")
+            self._handle_get_channel_playlist(provider_name, channel_name)
+            return
+
+        match_get_channel_segment = re.match(
+            "^/(?P<provider_name>[^/]+)/(?P<channel_name>[^/]+)/(?P<segment_type>[^/]+)/(?P<segment_time>[^/]+)$", parsed_url.path)
+
+        if match_get_channel_segment:
+            provider_name = match_get_channel_segment.group("provider_name")
+            channel_name = match_get_channel_segment.group("channel_name")
+            segment_type = match_get_channel_segment.group("segment_type")
+            segment_time = match_get_channel_segment.group("segment_time")
+            self._get_channel_segment(provider_name, channel_name, segment_type, segment_time)
             return
 
         match_get_index = parsed_url.path == "/"
@@ -53,8 +64,15 @@ class IptvProxyRequestHandler(BaseHTTPRequestHandler):
 
         self.send_response(404)
 
+    def _get_channel_segment(self, provider_name, channel_name, segment_type, segment_time):
+        segment = self._providers[provider_name].get_channel_segment(channel_name, segment_type, segment_time)
+        self.send_response(200)
+        self.send_header("Content-Type", str(len(segment)))
+        self.end_headers()
+        self.wfile.write(segment)
+
     # TODO Break up method
-    def _handle_get_stream(self, provider_name, channel_name, is_head=False):
+    def _handle_get_channel_playlist(self, provider_name, channel_name, is_head=False):
         playlist_cache_key = provider_name + "/" + channel_name
         playlist_cache_value = self._playlist_cache.get(playlist_cache_key)
         playlist = None
