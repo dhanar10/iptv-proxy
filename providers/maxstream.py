@@ -7,12 +7,12 @@ class Provider:
         self._opener = build_opener(HTTPCookieProcessor(CookieJar()))
         self._channels = {
             "duniagames": "https://cdn-telkomsel-01.akamaized.net/Content/HLS/Live/channel(ec41a5e2-09e4-431d-b92e-383fa7abe25c)/index.m3u8",
-            "egg": "https://cdn-telkomsel-01.akamaized.net/Content/HLS/Live/channel(cbd08544-cbff-407c-9a6e-833494cb8bad)/index.m3u8",
-            "ftv": "https://cdn-telkomsel-01.akamaized.net/Content/HLS/Live/channel(5cd2bf10-1ac0-4fa7-9543-3520f01b3378)/index.m3u8",
+            #"egg": "https://cdn-telkomsel-01.akamaized.net/Content/HLS/Live/channel(cbd08544-cbff-407c-9a6e-833494cb8bad)/index.m3u8",
+            #"ftv": "https://cdn-telkomsel-01.akamaized.net/Content/HLS/Live/channel(5cd2bf10-1ac0-4fa7-9543-3520f01b3378)/index.m3u8",
             "indonesia": "https://cdn-telkomsel-01.akamaized.net/Content/HLS/Live/channel(20baf7aa-fd51-480f-87b3-dc4198090e86)/index.m3u8",
-            "mcc": "https://cdn-telkomsel-01.akamaized.net/Content/HLS/Live/channel(9430f215-8ccb-4322-affd-6dbc97e259bd)/index.m3u8",
-            "rockentertainment": "https://cdn-telkomsel-01.akamaized.net/Content/HLS/Live/channel(7110fb03-7887-4104-a6cd-0ba950b28ea4)/index.m3u8",
-            "rockextreme": "https://cdn-telkomsel-01.akamaized.net/Content/HLS/Live/channel(0c72959b-2ccf-443c-a664-66170e390be1)/index.m3u8",
+            #"mcc": "https://cdn-telkomsel-01.akamaized.net/Content/HLS/Live/channel(9430f215-8ccb-4322-affd-6dbc97e259bd)/index.m3u8",
+            #"rockentertainment": "https://cdn-telkomsel-01.akamaized.net/Content/HLS/Live/channel(7110fb03-7887-4104-a6cd-0ba950b28ea4)/index.m3u8",
+            #"rockextreme": "https://cdn-telkomsel-01.akamaized.net/Content/HLS/Live/channel(0c72959b-2ccf-443c-a664-66170e390be1)/index.m3u8",
             "ruangtrampil": "https://cdn-telkomsel-01.akamaized.net/Content/HLS/Live/channel(2b945e2e-4297-4be9-9a45-aa023c890e13)/index.m3u8",
             "useephoto": "https://cdn-telkomsel-01.akamaized.net/Content/HLS/Live/channel(f1b6e507-d639-4d66-858a-e457d55ddbb2)/index.m3u8"
         }
