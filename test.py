@@ -6,12 +6,12 @@ test_provider_channel_name_list = [
     ('biznet', 'biznetkids'),
     ('cna', 'cna'),
     ('cnbc', 'cnbcindonesia'),
-    #('maxstream', 'mcc'),
+    ('maxstream', 'indonesia'),
     ('rctiplus', 'gtv'),
     ('spacetoon', 'spacetoon'),
     ('tvri', 'tvri'),
     ('useetv', 'useeprime'),    # m3u
-    ('useetv', 'useeinfo')      # mpd
+    #('useetv', 'useeinfo')      # mpd
 ]
 
 
