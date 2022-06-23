@@ -25,6 +25,10 @@ class Provider:
         self._opener = build_opener(HTTPCookieProcessor(CookieJar()))
         self._opener.addheaders = [('User-Agent', 'Mozilla')]
         self._mpd_url_cache = {}
+        self._segment_video_last_count = 0
+        self._segment_audio_last_count = 0
+        self._segment_video_offset = 0
+        self._segment_audio_offset = 0
 
     def get_channel_names(self):
         channel_names = re.findall(
@@ -39,8 +43,8 @@ class Provider:
             raise Exception("Failed to get channel names")
         for k, v in self.CHANNEL_NAME_OVERRIDES.items():
             channel_names[channel_names.index(k)] = v
-        # return list(set(channel_names) - set(self._mpd_channels))
-        return channel_names
+        return list(set(channel_names) - set(self.MPD_CHANNELS))   #   Filter out MPD channels - keep stop playing after a while - same problem on official website
+        #return channel_names
 
     def get_channel_playlist(self, channel_name):
         url = None
@@ -88,6 +92,10 @@ class Provider:
                     "media", f"{channel_name}/audio/$Time$")
             playlist = ET.tostring(
                 mpd_root, encoding='utf-8').decode('utf-8')
+            self._segment_video_last_count = 0
+            self._segment_audio_last_count = 0
+            self._segment_video_offset = 0
+            self._segment_audio_offset = 0
         else:
             raise Exception("Wrong channel name")
         return playlist
@@ -96,17 +104,42 @@ class Provider:
         mpd_url_cache_value = self._mpd_url_cache.get(channel_name)
         url = mpd_url_cache_value[1]
         base_url = url.split("?")[0].rsplit("/", 1)[0] + "/"
+        print(url)
         mpd_str = self._opener.open(url).read()
         ET.register_namespace("", self.MPD_NS)
         mpd_root = ET.fromstring(mpd_str)
         self._limit_video_representation(mpd_root)
         # FIXME pramborstv representation id
         for mpd_segmenttemplate in mpd_root.iterfind(f".//{{{self.MPD_NS}}}Representation[@mimeType='{type}/mp4']/{{{self.MPD_NS}}}SegmentTemplate"):
-            for mpd_s in mpd_segmenttemplate.iterfind(f"{{{self.MPD_NS}}}SegmentTimeline/{{{self.MPD_NS}}}S"):
-                if int(mpd_s.get('t')) >= int(time):
+            mpd_s_all = mpd_segmenttemplate.findall(
+                f"{{{self.MPD_NS}}}SegmentTimeline/{{{self.MPD_NS}}}S")
+            print((len(mpd_s_all), self._segment_video_offset, self._segment_audio_offset))
+            last_count = 0
+            if type == "video":
+                last_count = self._segment_video_last_count
+            if type == "audio":
+                last_count = self._segment_audio_last_count
+            if len(mpd_s_all) < last_count:
+                if type == "video":
+                    self._segment_video_offset = int(time)
+                if type == "audio":
+                    self._segment_audio_offset = int(time)
+            if type == "video":
+                self._segment_video_last_count = len(mpd_s_all)
+            if type == "audio":
+                self._segment_audio_last_count = len(mpd_s_all)
+            for mpd_s in mpd_s_all:
+                offset = 0
+                if type == "video":
+                    offset = self._segment_video_offset
+                if type == "audio":
+                    offset = self._segment_audio_offset
+                if int(mpd_s.get('t')) >= int(time) - offset:
                     segment = self._opener.open(
                         base_url + mpd_segmenttemplate.get("media").replace("$Time$", mpd_s.get('t'))).read()
                     return segment
+        print(ET.tostring(mpd_root, encoding='utf-8').decode('utf-8'))
+        return None
 
     def get_kodi_props(self, channel_name):
         if channel_name in self.MPD_CHANNELS:

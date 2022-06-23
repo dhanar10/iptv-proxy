@@ -66,10 +66,13 @@ class IptvProxyRequestHandler(BaseHTTPRequestHandler):
 
     def _get_channel_segment(self, provider_name, channel_name, segment_type, segment_time):
         segment = self._providers[provider_name].get_channel_segment(channel_name, segment_type, segment_time)
-        self.send_response(200)
-        self.send_header("Content-Type", str(len(segment)))
-        self.end_headers()
-        self.wfile.write(segment)
+        if segment:
+            self.send_response(200)
+            self.send_header("Content-Type", str(len(segment)))
+            self.end_headers()
+            self.wfile.write(segment)
+        else:
+            self.send_response(404)
 
     # TODO Break up method
     def _handle_get_channel_playlist(self, provider_name, channel_name, is_head=False):
